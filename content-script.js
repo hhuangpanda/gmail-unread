@@ -23,7 +23,15 @@ function createAndInsertUnreadButton() {
     countBubble.remove();
   }
 
-  unreadLink.addEventListener('click', (event) => {
+  // --- Change the icon class ---
+  const tnDiv = unreadContainer.querySelector('.TN.bzz'); // Find the div with TN and bzz classes
+  if (tnDiv) {
+    tnDiv.classList.remove('aHS-bnw'); // Remove Starred icon class
+    tnDiv.classList.add('aHS-aHO');    // Add All Mail icon class
+  }
+  // --- End icon change ---
+
+  unreadContainer.addEventListener('click', (event) => {
     event.preventDefault();
     window.location.href = unreadUrl;
   });
