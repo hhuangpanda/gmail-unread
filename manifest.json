@@ -3,6 +3,11 @@
   "name": "Gmail Unread Filter",
   "version": "1.0",
   "description": "Adds a button to filter unread emails in Gmail",
+  "icons": {
+    "16": "gmail-unread-icon-16x16.png",
+    "48": "gmail-unread-icon-48x48.png",
+    "128": "gmail-unread-icon-128x128.png"
+  },
   "host_permissions": ["https://mail.google.com/*"],
   "content_scripts": [{
     "matches": ["https://mail.google.com/*"],
