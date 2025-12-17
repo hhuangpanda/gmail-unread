@@ -13,7 +13,8 @@ function createAndInsertUnreadButton() {
   const unreadLink = unreadContainer.querySelector('a');
   if (!unreadLink) return;
 
-  const unreadUrl = 'https://mail.google.com/mail/u/0/#search/is%3Aunread';
+  const currentPath = window.location.pathname;
+  const unreadUrl = `${currentPath}#search/is%3Aunread`;
   unreadLink.href = unreadUrl;
   unreadLink.textContent = 'Unread';
   unreadLink.setAttribute('aria-label', 'Unread');
@@ -49,8 +50,8 @@ function createAndInsertUnreadButton() {
 function updateUnreadButtonState() {
   const unreadButtonContainer = document.querySelector('.TO[data-tooltip="Unread"]');
   if (unreadButtonContainer) {
-    const unreadUrl = 'https://mail.google.com/mail/u/0/#search/is%3Aunread';
-    if (window.location.href.includes(unreadUrl)) {
+    const unreadHash = '#search/is%3Aunread';
+    if (window.location.hash === unreadHash) {
       // Selected state: TO aBP nZ aiq
       unreadButtonContainer.classList.add('aBP');
       unreadButtonContainer.classList.add('nZ');
@@ -64,23 +65,29 @@ function updateUnreadButtonState() {
   }
 }
 
-// --- Insertion Logic ---
-const insertionInterval = setInterval(() => {
-  // If the unread button is NOT present, insert it.
-  if (!document.querySelector('a[aria-label="Unread"]')) {
+// --- Main Loop for Insertion and State Management ---
+// Consolidates insertion checks and state updates into a single, less frequent poll.
+const mainLoopId = setInterval(() => {
+  const unreadButtonLink = document.querySelector('a[aria-label="Unread"]');
+
+  if (!unreadButtonLink) {
+    // Attempt to insert if missing
     createAndInsertUnreadButton();
+    // If insertion succeeded, we can immediately update state, but the next tick or event will also catch it.
+    // We check if it was successfully inserted before updating state to avoid errors.
+    if (document.querySelector('a[aria-label="Unread"]')) {
+      updateUnreadButtonState();
+    }
+  } else {
+    // If present, ensure visual state matches the URL
+    updateUnreadButtonState();
   }
-}, 200);
+}, 500);
 
-// --- Observer for State Updates ---
-const stateObserver = new MutationObserver(() => {
-  updateUnreadButtonState();
-});
+// --- Event Listeners for Instant Responsiveness ---
+// These ensure the button highlights immediately on navigation, without waiting for the interval.
+window.addEventListener('hashchange', updateUnreadButtonState);
+window.addEventListener('popstate', updateUnreadButtonState);
 
-stateObserver.observe(document.body, {
-  childList: true,
-  subtree: true,
-});
-
-// Initial state update when the script runs
+// Initial run
 updateUnreadButtonState();
