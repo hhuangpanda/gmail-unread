@@ -4,7 +4,7 @@ const locales = {
     "az": "Oxunmamış",
     "id": "Belum dibaca",
     "ms": "Belum dibaca",
-    "ca": "No llegit",
+    "ca": "No llegits",
     "cs": "Nepřečtené",
     "cy": "Heb ddarllen",
     "da": "Ulæste",
@@ -21,23 +21,23 @@ const locales = {
     "ga": "Gan léamh",
     "gl": "Non lidos",
     "hr": "Nepročitano",
-    "it": "Da leggere",
+    "it": "Non letti",
     "zu": "Okungafundiwe",
     "is": "Ólesið",
     "sw": "Haijasomwa",
     "lv": "Neizlasītās",
-    "lt": "Neskaityta",
-    "hu": "Olvasatlan",
-    "no": "Ulest",
+    "lt": "Neskaityti",
+    "hu": "Olvasatlanok",
+    "no": "Uleste",
     "nl": "Ongelezen",
     "pl": "Nieprzeczytane",
-    "pt-BR": "Não lidas",
-    "pt-PT": "Não lidas",
+    "pt-BR": "Não lidos",
+    "pt-PT": "Não lidos",
     "ro": "Necitite",
     "sk": "Neprečítané",
     "sl": "Neprebrano",
     "fi": "Lukemattomat",
-    "sv": "Oläst",
+    "sv": "Olästa",
     "vi": "Chưa đọc",
     "tr": "Okunmamış",
     "el": "Μη αναγνωσμένα",
@@ -47,19 +47,19 @@ const locales = {
     "sr": "Непрочитано",
     "uk": "Непрочитані",
     "hy": "Չկարդացված",
-    "he": "לא נקרא",
-    "iw": "לא נקרא",
+    "he": "לא נקראו",
+    "iw": "לא נקראו",
     "ur": "غیر خواندہ",
     "ar": "غير مقروءة",
     "fa": "خوانده نشده",
-    "ne": "नपढेको",
+    "ne": "नपढेका",
     "mr": "न वाचलेले",
     "hi": "बिना पढ़े",
     "bn": "অপঠিত",
     "gu": "વાંચ્યા વગરના",
     "ta": "படிக்காதவை",
     "te": "చదవనివి",
-    "kn": "ಓದದಿರುವ",
+    "kn": "ಓದದಿರುವುದು",
     "ml": "വായിക്കാത്തവ",
     "si": "නොකියවූ",
     "th": "ยังไม่ได้อ่าน",
@@ -90,8 +90,9 @@ function getUnreadLabel() {
 }
 
 function createAndInsertUnreadButton() {
+  const unreadLabel = getUnreadLabel();
   // Robust check: remove ANY existing unread buttons before creating a new one
-  const existingButtons = document.querySelectorAll('.TO[data-tooltip="Unread"]');
+  const existingButtons = document.querySelectorAll(`.TO[data-tooltip="${unreadLabel}"]`);
   if (existingButtons.length > 0) {
     // If one already exists and looks correct, we don't need to do anything.
     // If multiple exist, we'll let the update loop clean them up, but we shouldn't add another.
@@ -106,7 +107,6 @@ function createAndInsertUnreadButton() {
 
   const unreadContainer = starredContainer.cloneNode(true);
 
-  const unreadLabel = getUnreadLabel();
   unreadContainer.setAttribute('data-tooltip', unreadLabel);
   unreadContainer.id = '';
 
@@ -153,7 +153,7 @@ function updateUnreadButtonState() {
   const unreadButtonContainer = document.querySelector(`.TO[data-tooltip="${unreadLabel}"]`);
   if (unreadButtonContainer) {
     const unreadHash = '#search/is%3Aunread';
-    if (window.location.hash === unreadHash) {
+    if (window.location.hash.startsWith(unreadHash)) {
       // Selected state: TO aBP nZ aiq
       unreadButtonContainer.classList.add('aBP');
       unreadButtonContainer.classList.add('nZ');
@@ -164,40 +164,24 @@ function updateUnreadButtonState() {
       unreadButtonContainer.classList.remove('nZ');
       unreadButtonContainer.classList.add('aiq');
     }
-
-     // --- Sync Unread Count Bubble ---
-    // Feature removed: Redundant unread count display.
-    const unreadCountBubble = unreadButtonContainer.querySelector('.bsU');
-    if (unreadCountBubble) {
-        unreadCountBubble.remove();
-    }
-    
-    const unreadLink = unreadButtonContainer.querySelector('a');
-    if (unreadLink) {
-        unreadLink.setAttribute('aria-label', unreadLabel);
-    }
   }
 }
 
-// --- Main Loop for Insertion and State Management ---
-// Consolidates insertion checks and state updates into a single, less frequent poll.
-const mainLoopId = setInterval(() => {
+// --- Mutation Observer for Insertion ---
+// Watches for DOM changes to insert the button when Gmail loads or updates.
+const observer = new MutationObserver((mutations) => {
   const unreadLabel = getUnreadLabel();
   const unreadButtonLink = document.querySelector(`a[aria-label="${unreadLabel}"]`);
 
   if (!unreadButtonLink) {
-    // Attempt to insert if missing
     createAndInsertUnreadButton();
-    // If insertion succeeded, we can immediately update state, but the next tick or event will also catch it.
-    // We check if it was successfully inserted before updating state to avoid errors.
     if (document.querySelector(`a[aria-label="${unreadLabel}"]`)) {
       updateUnreadButtonState();
     }
-  } else {
-    // If present, ensure visual state matches the URL
-    updateUnreadButtonState();
   }
-}, 500);
+});
+
+observer.observe(document.body, { childList: true, subtree: true });
 
 // --- Event Listeners for Instant Responsiveness ---
 // These ensure the button highlights immediately on navigation, without waiting for the interval.

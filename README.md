@@ -1,9 +1,10 @@
 # gmail-unread
-Adds a dedicated Unread button to Gmail for instant access to unread messages.
+Adds a dedicated Unread button in the sidebar to Gmail for easy access to unread emails.
 
 ## Description
 
 "Gmail Unread Filter" is a lightweight Chrome extension that enhances your Gmail experience by adding a dedicated "Unread" button to the navigation sidebar. This allows for quick and easy access to all your unread emails with a single click, streamlining your workflow.
+Supports all Gmail display languages.
 
 This project is open source and the code is available on GitHub: https://github.com/hhuangpanda/gmail-unread
 
