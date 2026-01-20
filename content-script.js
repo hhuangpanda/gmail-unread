@@ -169,17 +169,35 @@ function updateUnreadButtonState() {
 
 // --- Mutation Observer for Insertion ---
 // Watches for DOM changes to insert the button when Gmail loads or updates.
-const observer = new MutationObserver((mutations) => {
-  const unreadLabel = getUnreadLabel();
-  const unreadButtonLink = document.querySelector(`a[aria-label="${unreadLabel}"]`);
+let throttleTimer;
+const startTime = Date.now();
 
-  if (!unreadButtonLink) {
-    createAndInsertUnreadButton();
-    if (document.querySelector(`a[aria-label="${unreadLabel}"]`)) {
-      updateUnreadButtonState();
-    }
+const observer = new MutationObserver((mutations) => {
+  const isStartupPhase = Date.now() - startTime < 5000; // First 5 seconds
+
+  if (isStartupPhase) {
+    // Run immediately during startup to prevent flickering
+    checkAndInsert();
+  } else {
+    // Throttle afterwards to save CPU
+    if (throttleTimer) return;
+    throttleTimer = setTimeout(() => {
+      throttleTimer = null;
+      checkAndInsert();
+    }, 500);
   }
 });
+
+function checkAndInsert() {
+    const unreadLabel = getUnreadLabel();
+    const unreadButtonLink = document.querySelector(`a[aria-label="${unreadLabel}"]`);
+
+    if (!unreadButtonLink) {
+      createAndInsertUnreadButton();
+    }
+    // Always update state to ensure it matches the URL, even if the button already existed
+    updateUnreadButtonState();
+}
 
 observer.observe(document.body, { childList: true, subtree: true });
 
@@ -189,4 +207,4 @@ window.addEventListener('hashchange', updateUnreadButtonState);
 window.addEventListener('popstate', updateUnreadButtonState);
 
 // Initial run
-updateUnreadButtonState();
+checkAndInsert();
